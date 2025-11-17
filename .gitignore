@@ -1,2 +1,4 @@
 *.pdf
 dipenv/
+captures/
+__pycache__/
