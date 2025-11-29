@@ -8,6 +8,7 @@ class FrameStage(ABC):
     @abstractmethod
     def __call__(self, frame):
         """Takes a frame and returns a new frame"""
+        return frame
 
 
 class Pipeline:
