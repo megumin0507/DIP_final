@@ -2,11 +2,15 @@ from wsl_usb_cam.pipeline import Pipeline
 from wsl_usb_cam.pipelines.demo import OverlayFPS
 from wsl_usb_cam.pipelines.awb import AutoWhiteBalance
 from wsl_usb_cam.pipelines.noise_reduction import BilateralSmoothing
+from wsl_usb_cam.pipelines.undistort import Undistort
 from wsl_usb_cam.app import AppCore
 from wsl_usb_cam.web import create_app
 from wsl_usb_cam.keyboard import KeyboardController
 import threading, time
 import logging
+
+
+DEVICE_INDEX = 2 # Change this to your own device index
 
 
 def main():
@@ -17,12 +21,17 @@ def main():
     )
     logger = logging.getLogger(__name__)
 
-    camera_cfg = {"device_index": 3, "size": (640, 480), "fps": 30}
+    import os, cv2
+    sample_dir = os.path.join(os.path.dirname(cv2.__file__), "samples/data")
+    print(sample_dir)
+
+    camera_cfg = {"device_index": DEVICE_INDEX, "size": (640, 480), "fps": 30}
 
     # later add more stages here
     pipeline = Pipeline([
+        #BilateralSmoothing(ksize=7, sigma_s=3.0, sigma_r=0.08, apply_to="all"),
         AutoWhiteBalance(p=1.0, ksize=3, update_every=5),
-        BilateralSmoothing(ksize=7, sigma_s=3.0, sigma_r=0.08, apply_to="all"),
+        Undistort(calib_file="calibration_result.npz"),
         OverlayFPS(),
     ])
 
