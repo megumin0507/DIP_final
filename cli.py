@@ -2,6 +2,7 @@ from wsl_usb_cam.pipeline import Pipeline
 from wsl_usb_cam.pipelines.demo import OverlayFPS
 from wsl_usb_cam.pipelines.awb import AutoWhiteBalance
 from wsl_usb_cam.pipelines.noise_reduction import BilateralSmoothing
+from wsl_usb_cam.pipelines.tone import ToneAdjust
 from wsl_usb_cam.pipelines.undistort import Undistort
 from wsl_usb_cam.app import AppCore
 from wsl_usb_cam.web import create_app
@@ -32,6 +33,7 @@ def main():
         #BilateralSmoothing(ksize=7, sigma_s=3.0, sigma_r=0.08, apply_to="all"),
         AutoWhiteBalance(p=1.0, ksize=3, update_every=5),
         Undistort(calib_file="calibration_result.npz"),
+        ToneAdjust(),
         OverlayFPS(),
     ])
 

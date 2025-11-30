@@ -1,26 +1,10 @@
-from flask import Flask, Response, render_template_string
+from flask import Flask, Response, render_template, render_template_string, request
 from .app import AppCore
+from .pipelines.tone import ToneAdjust
 import cv2, time
 import logging
 
 logger = logging.getLogger(__name__)
-
-
-HTML = """
-<!doctype html>
-<title>WSL USB Cam Preview</title>
-<style>
-body { margin:0; background:#111; color:#eee; font-family:system-ui, sans-serif; }
-.bar { position:fixed; top:0; left:0; right:0; padding:10px 12px; background:rgba(0,0,0,.6); }
-img { display:block; margin:0 auto; width: min(100vw, 1280px); height:auto; }
-.wrap { padding-top:50px; }
-kbd { background:#333; padding:2px 6px; border-radius:4px; }
-</style>
-<div class="bar">預覽中：在 <kbd>終端</kbd> 輸入 <kbd>v</kbd> 拍照、<kbd>q</kbd> 結束。</div>
-<div class="wrap">
-  <img src="/stream" />
-</div>
-"""
 
 def create_app(app_core: AppCore):
     logger.info("Starting creating app...")
@@ -28,7 +12,7 @@ def create_app(app_core: AppCore):
 
     @app.route("/")
     def index():
-        return render_template_string(HTML)
+        return render_template("index.html")
     
     @app.route("/stream")
     def stream():
@@ -50,4 +34,11 @@ def create_app(app_core: AppCore):
                 )
         return Response(gen(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
+    @app.route("/tone_update", methods=["POST"])
+    def tone_update():
+        js = request.get_json(force=True)
+        value = js.get("brightness", 0.0)
+        ToneAdjust(brightness=value)
+        return {"status": "ok", "value": value}, 200
+    
     return app
