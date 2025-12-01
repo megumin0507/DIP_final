@@ -30,7 +30,7 @@ def main():
 
     # later add more stages here
     pipeline = Pipeline([
-        #BilateralSmoothing(ksize=7, sigma_s=3.0, sigma_r=0.08, apply_to="all"),
+        BilateralSmoothing(diameter=7, sigma_color=25, sigma_space=5),
         AutoWhiteBalance(p=1.0, ksize=3, update_every=5),
         Undistort(calib_file="calibration_result.npz"),
         ToneAdjust(),
