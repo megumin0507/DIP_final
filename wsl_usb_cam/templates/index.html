@@ -19,6 +19,27 @@
             right: 0;
             padding: 10px 12px;
             background: rgba(0, 0, 0, .6);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex-wrap: wrap;
+            font-size: 14px;
+        }
+
+        .bar-main {
+            white-space: nowrap;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .control_group {
+            background: #222;
+            padding: 6px 10px;
+            border-radius: 6px;
         }
 
         img {
@@ -37,25 +58,60 @@
             padding: 2px 6px;
             border-radius: 4px;
         }
+
+        label.stage-label {
+            margin-right: 8px;
+            user-select: none;
+        }
     </style>
 </head>
 
 <body>
-    <div class="bar">預覽中：在 <kbd>終端</kbd> 輸入 <kbd>v</kbd> 拍照、<kbd>q</kbd> 結束。</div>
+    <div class="bar">
+        <!-- <div class="bar-main">
+            預覽中：在 <kbd>終端</kbd> 輸入 <kbd>v</kbd> 拍照、<kbd>q</kbd> 結束。</div>
+        </div> -->
+
+        <div class="controls">
+            <!--Pipeline toggle panel-->
+            <div class="control_group">
+                <strong>Pipeline stages:</strong>
+                <label class="stage-label">
+                    <input class="stage-toggle" type="checkbox" data-stage="bilateral" checked>
+                    Bilateral
+                </label>
+                <label class="stage-label">
+                    <input class="stage-toggle" type="checkbox" data-stage="awb" checked>
+                    AWB
+                </label>
+                <label class="stage-label">
+                    <input class="stage-toggle" type="checkbox" data-stage="undistort" checked>
+                    Undistort
+                </label>
+                <label class="stage-label">
+                    <input class="stage-toggle" type="checkbox" data-stage="tone" checked>
+                    Tone
+                </label>
+                <label class="stage-label">
+                    <input class="stage-toggle" type="checkbox" data-stage="overlay_fps" checked>
+                    FPS
+                </label>
+            </div>
+
+            <!--Existing brightness control-->
+            <div class="control_group">
+                <strong>Brightness:</strong>
+                <input id="brightness_slider" type="range" min="-1" max="1" step="0.01" value="0" />
+                <span id="brightness_value">0</span>
+            </div>
+        </div>
+
     <div class="wrap">
         <img src="/stream" />
     </div>
 
-    <h2>Brightness Adjust</h2>
-
-    <label>Move slider (this posts to server):</label><br>
-    <input id="brightness_slider" type="range" min="-1" max="1" step="0.01" value="0" />
-
-    <div class="box">
-        <strong>Brightness:</strong> <span id="brightness_value">0</span>
-    </div>
-
     <script>
+        // --- Brightness ---
         const slider = document.getElementById("brightness_slider");
         const localVal = document.getElementById("brightness_value");
 
@@ -67,8 +123,31 @@
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ brightness: val })
-            }).catch(err => console.error("POST error:", err));
+            }).catch(err => console.error("POST error (tone_update):", err));
         });
+
+        // ---Pipeline stage toggles ---
+        const stageCheckboxes = document.querySelectorAll(".stage-toggle")
+
+        function sendPipelineConfig() {
+            // Build a {stage_name: bool, ... } object
+            const stages = {}
+            stageCheckboxes.forEach(cb => {
+                stages[cb.dataset.stage] = cb.checked;
+            });
+
+            fetch("/pipeline_config", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ stages })
+            }).catch(err => console.error("POST error (pipeline_config):", err))
+        }
+
+        stageCheckboxes.forEach(cb => {
+            cb.addEventListener("change", sendPipelineConfig);
+        })
+
+        sendPipelineConfig();
     </script>
 </body>
 

@@ -21,6 +21,31 @@ class AppCore:
         self.save_dir = Path("./captures/")
         self.jpeg_quality = 90
 
+        self._config_lock = threading.Lock()
+        self.stage_config = {
+            name.lower(): True
+            for name in getattr(self.pipeline, "stage_names", [])
+        }
+
+        self.tone_params = {
+            "brightness": 0.0,
+        }
+
+    
+    def set_stage_config(self, stages: dict):
+        with self._config_lock:
+            for name in self.stage_config.keys():
+                if name in stages:
+                    self.stage_config[name] = bool(stages[name])
+        logger.info(f"Updated stage_config: {self.stage_config}")
+
+
+    def set_tone_params(self, *, brightness: float | None = None):
+        with self._config_lock:
+            if brightness is not None:
+                self.tone_params["brightness"] = float(brightness)
+        logger.debug(f"Updated tone_params: {self.tone_params}")
+
     
     def start(self):
         logger.info("Starting AppCore...")
@@ -58,7 +83,19 @@ class AppCore:
             if frame is None:
                 continue
 
-            frame = self.pipeline.process(frame)
+            with self._config_lock:
+                stage_cfg = dict(self.stage_config)
+                tone_cfg = dict(self.tone_params)
+
+            for name, stage in zip(self.pipeline.stage_names, self.pipeline.stages):
+                if name.lower() == "tone":
+                    stage.set_params(
+                        brightness=tone_cfg.get("brightness"),
+                        contrast=tone_cfg.get("contrast"),
+                        saturation=tone_cfg.get("saturation")
+                    )
+
+            frame = self.pipeline.process(frame, enabled_stages=stage_cfg)
 
             with self.latest_lock:
                 self.latest_frame = frame.copy()
