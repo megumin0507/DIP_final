@@ -4,6 +4,7 @@ from wsl_usb_cam.pipelines.awb import AutoWhiteBalance
 from wsl_usb_cam.pipelines.noise_reduction import BilateralSmoothing
 from wsl_usb_cam.pipelines.tone import ToneAdjust
 from wsl_usb_cam.pipelines.undistort import Undistort
+from wsl_usb_cam.pipelines.bg_blur_seg import BackgroundBlurSegmentation
 from wsl_usb_cam.app import AppCore
 from wsl_usb_cam.web import create_app
 from wsl_usb_cam.keyboard import KeyboardController
@@ -34,6 +35,14 @@ def main():
         AutoWhiteBalance(p=1.0, ksize=3, update_every=5),
         Undistort(calib_file="calibration_result.npz"),
         ToneAdjust(),
+        BackgroundBlurSegmentation(
+            downscale=0.5,          # 可調速度
+            update_every=2,         # 每 x 個 frame 更新 mask
+            foreground_threshold=0.5,
+            mask_smooth_ksize=21,
+            blur_ksize=31,          # Blur 程度
+            blur_sigma=0.0
+        ),
         OverlayFPS(),
     ])
 
