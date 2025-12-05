@@ -7,19 +7,22 @@ logger = logging.getLogger(__name__)
 
 
 class ToneAdjust(FrameStage):
-    # Singleton instance
-    __instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls.__instance is None:
-            cls.__instance = super(ToneAdjust, cls).__new__(cls)
-        return cls.__instance
-
     def __init__(self, brightness: float = 0.0, contrast: float = 1.0, saturation: float = 1.0):
         self.brightness = float(brightness)
         self.contrast = float(contrast)
         self.saturation = float(saturation)
         logger.info(f"ToneAdjust set brightness={self.brightness}, contrast={self.contrast}, saturation={self.saturation}")
+
+
+    def set_params(self, brightness=None, contrast=None, saturation=None):
+        if brightness is not None:
+            self.brightness = float(brightness)
+        if contrast is not None:
+            self.contrast = float(contrast)
+        if saturation is not None:
+            self.saturation = float(saturation)
+        logger.debug(f"ToneAdjust updated: brightness={self.brightness}, contrast={self.contrast}, saturation={self.saturation}")
+
 
     def __call__(self, frame):
         if frame is None:

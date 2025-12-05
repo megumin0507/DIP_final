@@ -12,7 +12,7 @@ import threading, time
 import logging
 
 
-DEVICE_INDEX = 2 # Change this to your own device index
+DEVICE_INDEX = 3 # Change this to your own device index
 
 
 def main():
@@ -31,19 +31,19 @@ def main():
 
     # later add more stages here
     pipeline = Pipeline([
-        BilateralSmoothing(diameter=7, sigma_color=25, sigma_space=5),
-        AutoWhiteBalance(p=1.0, ksize=3, update_every=5),
-        Undistort(calib_file="calibration_result.npz"),
-        ToneAdjust(),
-        BackgroundBlurSegmentation(
-            downscale=0.5,          # 可調速度
+    ("bilateral",   BilateralSmoothing(diameter=7, sigma_color=25, sigma_space=5)),
+    ("awb",         AutoWhiteBalance(p=1.0, ksize=3, update_every=5)),
+    ("undistort",   Undistort(calib_file="calibration_result.npz")),
+    ("tone",        ToneAdjust()),
+    ("BackgroundBlur",        BackgroundBlurSegmentation(
+            downscale=0.1,          # 可調速度
             update_every=2,         # 每 x 個 frame 更新 mask
             foreground_threshold=0.5,
             mask_smooth_ksize=21,
             blur_ksize=31,          # Blur 程度
             blur_sigma=0.0
-        ),
-        OverlayFPS(),
+        )),
+    ("overlay_fps", OverlayFPS()),
     ])
 
     core = AppCore(camera_cfg=camera_cfg, pipeline=pipeline)

@@ -34,11 +34,19 @@ def create_app(app_core: AppCore):
                 )
         return Response(gen(), mimetype="multipart/x-mixed-replace; boundary=frame")
 
+    @app.route("/pipeline_config", methods=["POST"])
+    def pipeline_config():
+        data = request.get_json(force=True) or {}
+        stages = data.get("stages", {})
+        app_core.set_stage_config(stages)
+        return "", 204
+
     @app.route("/tone_update", methods=["POST"])
     def tone_update():
-        js = request.get_json(force=True)
-        value = js.get("brightness", 0.0)
-        ToneAdjust(brightness=value)
-        return {"status": "ok", "value": value}, 200
+        data = request.get_json(force=True) or {}
+        brightness = data.get("brightness")
+        if brightness is not None:
+            app_core.set_tone_params(brightness=brightness)
+        return "", 204
     
     return app
