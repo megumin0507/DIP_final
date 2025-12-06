@@ -5,6 +5,7 @@ from wsl_usb_cam.pipelines.noise_reduction import BilateralSmoothing
 from wsl_usb_cam.pipelines.tone import ToneAdjust
 from wsl_usb_cam.pipelines.undistort import Undistort
 from wsl_usb_cam.pipelines.bg_blur_seg import BackgroundBlurSegmentation
+from wsl_usb_cam.pipelines.stabilize import VideoStabilizer
 from wsl_usb_cam.app import AppCore
 from wsl_usb_cam.web import create_app
 from wsl_usb_cam.keyboard import KeyboardController
@@ -12,7 +13,7 @@ import threading, time
 import logging
 
 
-DEVICE_INDEX = 3 # Change this to your own device index
+DEVICE_INDEX = 2 # Change this to your own device index
 
 
 def main():
@@ -23,10 +24,6 @@ def main():
     )
     logger = logging.getLogger(__name__)
 
-    import os, cv2
-    sample_dir = os.path.join(os.path.dirname(cv2.__file__), "samples/data")
-    print(sample_dir)
-
     camera_cfg = {"device_index": DEVICE_INDEX, "size": (640, 480), "fps": 30}
 
     # later add more stages here
@@ -34,8 +31,9 @@ def main():
     ("bilateral",   BilateralSmoothing(diameter=7, sigma_color=25, sigma_space=5)),
     ("awb",         AutoWhiteBalance(p=1.0, ksize=3, update_every=5)),
     ("undistort",   Undistort(calib_file="calibration_result.npz")),
+    ("stabilize",   VideoStabilizer()),
     ("tone",        ToneAdjust()),
-    ("BackgroundBlur",        BackgroundBlurSegmentation(
+    ("background_blur",        BackgroundBlurSegmentation(
             downscale=0.1,          # 可調速度
             update_every=2,         # 每 x 個 frame 更新 mask
             foreground_threshold=0.5,
