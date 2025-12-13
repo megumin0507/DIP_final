@@ -42,15 +42,10 @@ class AppCore:
         logger.info(f"Updated stage_config: {self.stage_config}")
 
 
-    def set_tone_params(self, brightness: float | None = None,
-                contrast: float | None = None, saturation: float | None = None):
+    def set_tone_params(self, params: dict | None = None):
         with self._config_lock:
-            if brightness is not None:
-                self.tone_params["brightness"] = float(brightness)
-            if contrast is not None:
-                self.tone_params["contrast"] = float(contrast)
-            if saturation is not None:
-                self.tone_params["saturation"] = float(saturation)
+            if params is not None:
+                self.tone_params = self.tone_params.copy()
         logger.debug(f"Updated tone_params: {self.tone_params}")
 
     
@@ -96,11 +91,7 @@ class AppCore:
 
             for name, stage in zip(self.pipeline.stage_names, self.pipeline.stages):
                 if name.lower() == "tone":
-                    stage.set_params(
-                        brightness=tone_cfg.get("brightness"),
-                        contrast=tone_cfg.get("contrast"),
-                        saturation=tone_cfg.get("saturation")
-                    )
+                    stage.set_params(**tone_cfg)
 
             frame = self.pipeline.process(frame, enabled_stages=stage_cfg)
 

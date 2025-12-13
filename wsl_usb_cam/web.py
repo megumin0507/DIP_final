@@ -45,7 +45,7 @@ def create_app(app_core: AppCore):
     def tone_update():
         data = request.get_json(force=True) or {}
         if data is not None:
-            app_core.set_tone_params(**data)
+            app_core.set_tone_params(data)
         return "", 204
     
     return app

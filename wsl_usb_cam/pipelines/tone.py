@@ -7,21 +7,26 @@ logger = logging.getLogger(__name__)
 
 
 class ToneAdjust(FrameStage):
-    def __init__(self, brightness: float = 0.0, contrast: float = 1.0, saturation: float = 1.0):
+    def __init__(self, brightness: float = 0.0, contrast: float = 1.0, saturation: float = 1.0, skin_tone_scale: float = 1.2):
         self.brightness = np.clip(float(brightness), -1.0, 1.0)
         self.contrast = np.clip(float(contrast), 0.5, 2.0)
         self.saturation = np.clip(float(saturation), 0.0, 2.0)
-        logger.info(f"ToneAdjust set brightness={self.brightness}, contrast={self.contrast}, saturation={self.saturation}")
+        self.skin_tone_scale = np.clip(float(skin_tone_scale), 0.0, 2.0)
+        logger.info(f"ToneAdjust set brightness={self.brightness}, contrast={self.contrast}, saturation={self.saturation}" +
+                    f", skin_tone_scale={self.skin_tone_scale}")
 
 
-    def set_params(self, brightness=None, contrast=None, saturation=None):
+    def set_params(self, brightness=None, contrast=None, saturation=None, skin_tone_scale=None):
         if brightness is not None:
             self.brightness = np.clip(float(brightness), -1.0, 1.0)
         if contrast is not None:
             self.contrast = np.clip(float(contrast), 0.5, 2.0)
         if saturation is not None:
             self.saturation = np.clip(float(saturation), 0.0, 2.0)
-        logger.debug(f"ToneAdjust updated: brightness={self.brightness}, contrast={self.contrast}, saturation={self.saturation}")
+        if skin_tone_scale is not None:
+            self.skin_tone_scale = np.clip(float(skin_tone_scale), 0.0, 2.0)
+        logger.debug(f"ToneAdjust updated: brightness={self.brightness}, contrast={self.contrast}," +
+                     f" saturation={self.saturation}, skin_tone_scale={self.skin_tone_scale}")
 
 
     def __call__(self, frame):
@@ -34,7 +39,8 @@ class ToneAdjust(FrameStage):
         hsv_frame[..., 1] *= self.saturation
         hsv_frame[..., 1] = np.clip(hsv_frame[..., 1], 0, 255)
         tone_frame = cv2.cvtColor(hsv_frame.astype(np.uint8), cv2.COLOR_HSV2BGR)
-
+        if self.skin_tone_scale != 1.0:
+            tone_frame = SkinToneAdjust(self.skin_tone_scale)(tone_frame)
         return tone_frame
 
 class LCE(FrameStage):
@@ -62,3 +68,45 @@ class LCE(FrameStage):
         lce_frame = cv2.addWeighted(frame, 1.0 + self.amount, blur, -self.amount, 0)
 
         return lce_frame
+    
+class SkinToneAdjust(FrameStage):
+    def __init__(self, scale: float = 1.2):
+        self.scale = scale
+
+    def __call__(self, frame):
+        if frame is None:
+            return frame
+        return self.adjust_skin_saturation_lab(frame, self.scale)
+
+    def skin_mask_ycrcb(self, img_bgr):
+        ycrcb = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2YCrCb)
+        Y, Cr, Cb = cv2.split(ycrcb)
+
+        mask = np.logical_and.reduce((
+            Cr > 135, Cr < 180,
+            Cb > 85,  Cb < 135
+        ))
+        return mask.astype(np.uint8)
+
+    def adjust_skin_saturation_lab(self, img_bgr, scale=1.2):
+        mask = self.skin_mask_ycrcb(img_bgr)
+        # soft mask
+        mask = cv2.GaussianBlur(mask.astype(np.float32), (15,15), 0)
+
+        lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
+        L, a, b = cv2.split(lab)
+
+        # Center at 128
+        a -= 128
+        b -= 128
+
+        a = cv2.addWeighted(a * mask, scale, a * (1 - mask), 1.0, 0)
+        b = cv2.addWeighted(b * mask, scale, b * (1 - mask), 1.0, 0)
+
+        a += 128
+        b += 128
+
+        lab = cv2.merge([L, a, b])
+        lab = np.clip(lab, 0, 255).astype(np.uint8)
+
+        return cv2.cvtColor(lab, cv2.COLOR_LAB2BGR)
