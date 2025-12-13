@@ -3,6 +3,7 @@ from wsl_usb_cam.pipelines.demo import OverlayFPS
 from wsl_usb_cam.pipelines.awb import AutoWhiteBalance
 from wsl_usb_cam.pipelines.noise_reduction import BilateralSmoothing
 from wsl_usb_cam.pipelines.tone import ToneAdjust, LCE, SkinToneAdjust
+from wsl_usb_cam.pipelines.sharpen import Sharpen
 from wsl_usb_cam.pipelines.undistort import Undistort
 from wsl_usb_cam.pipelines.bg_blur_seg import BackgroundBlurSegmentation
 from wsl_usb_cam.pipelines.stabilize import VideoStabilizer
@@ -34,6 +35,7 @@ def main():
     ("stabilize",   VideoStabilizer()),
     ("lce",         LCE()),
     ("tone",        ToneAdjust()),
+    ("sharpen",     Sharpen(amount=1.0)),
     ("background_blur",        BackgroundBlurSegmentation(
             downscale=0.1,          # 可調速度
             update_every=2,         # 每 x 個 frame 更新 mask
