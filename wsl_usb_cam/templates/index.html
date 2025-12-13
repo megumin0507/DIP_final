@@ -111,6 +111,12 @@
                 <strong>Brightness:</strong>
                 <input id="brightness_slider" type="range" min="-1" max="1" step="0.01" value="0" />
                 <span id="brightness_value">0</span>
+                <strong>Contrast:</strong>
+                <input id="contrast_slider" type="range" min="0.5" max="2" step="0.01" value="1" />
+                <span id="contrast_value">1</span>
+                <strong>Saturation:</strong>
+                <input id="saturation_slider" type="range" min="0" max="2" step="0.01" value="1" />
+                <span id="saturation_value">1</span>
             </div>
         </div>
 
@@ -119,19 +125,34 @@
     </div>
 
     <script>
-        // --- Brightness ---
-        const slider = document.getElementById("brightness_slider");
-        const localVal = document.getElementById("brightness_value");
+        // --- Tone controls ---
+        const toneControls = [
+            { param: 'brightness', sliderId: 'brightness_slider', valueId: 'brightness_value' },
+            { param: 'contrast', sliderId: 'contrast_slider', valueId: 'contrast_value' },
+            { param: 'saturation', sliderId: 'saturation_slider', valueId: 'saturation_value' }
+        ];
 
-        slider.addEventListener("input", () => {
-            const val = Number(slider.value);
-            localVal.textContent = val;
-            // POST new slider value to server
-            fetch("/tone_update", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({ brightness: val })
-            }).catch(err => console.error("POST error (tone_update):", err));
+        const toneValues = {};
+
+        toneControls.forEach(control => {
+            const slider = document.getElementById(control.sliderId);
+            const valueDisplay = document.getElementById(control.valueId);
+            
+            // Initialize value
+            toneValues[control.param] = Number(slider.value);
+            
+            slider.addEventListener("input", () => {
+                const val = Number(slider.value);
+                valueDisplay.textContent = val;
+                toneValues[control.param] = val;
+                
+                // POST all tone values to server
+                fetch("/tone_update", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify(toneValues)
+                }).catch(err => console.error("POST error (tone_update):", err));
+            });
         });
 
         // ---Pipeline stage toggles ---

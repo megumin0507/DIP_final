@@ -29,6 +29,8 @@ class AppCore:
 
         self.tone_params = {
             "brightness": 0.0,
+            "contrast": 1.0,
+            "saturation": 1.0,
         }
 
     
@@ -40,10 +42,15 @@ class AppCore:
         logger.info(f"Updated stage_config: {self.stage_config}")
 
 
-    def set_tone_params(self, *, brightness: float | None = None):
+    def set_tone_params(self, brightness: float | None = None,
+                contrast: float | None = None, saturation: float | None = None):
         with self._config_lock:
             if brightness is not None:
                 self.tone_params["brightness"] = float(brightness)
+            if contrast is not None:
+                self.tone_params["contrast"] = float(contrast)
+            if saturation is not None:
+                self.tone_params["saturation"] = float(saturation)
         logger.debug(f"Updated tone_params: {self.tone_params}")
 
     

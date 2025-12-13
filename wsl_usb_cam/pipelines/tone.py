@@ -8,19 +8,19 @@ logger = logging.getLogger(__name__)
 
 class ToneAdjust(FrameStage):
     def __init__(self, brightness: float = 0.0, contrast: float = 1.0, saturation: float = 1.0):
-        self.brightness = float(brightness)
-        self.contrast = float(contrast)
-        self.saturation = float(saturation)
+        self.brightness = np.clip(float(brightness), -1.0, 1.0)
+        self.contrast = np.clip(float(contrast), 0.5, 2.0)
+        self.saturation = np.clip(float(saturation), 0.0, 2.0)
         logger.info(f"ToneAdjust set brightness={self.brightness}, contrast={self.contrast}, saturation={self.saturation}")
 
 
     def set_params(self, brightness=None, contrast=None, saturation=None):
         if brightness is not None:
-            self.brightness = float(brightness)
+            self.brightness = np.clip(float(brightness), -1.0, 1.0)
         if contrast is not None:
-            self.contrast = float(contrast)
+            self.contrast = np.clip(float(contrast), 0.5, 2.0)
         if saturation is not None:
-            self.saturation = float(saturation)
+            self.saturation = np.clip(float(saturation), 0.0, 2.0)
         logger.debug(f"ToneAdjust updated: brightness={self.brightness}, contrast={self.contrast}, saturation={self.saturation}")
 
 

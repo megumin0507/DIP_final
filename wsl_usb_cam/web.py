@@ -44,9 +44,8 @@ def create_app(app_core: AppCore):
     @app.route("/tone_update", methods=["POST"])
     def tone_update():
         data = request.get_json(force=True) or {}
-        brightness = data.get("brightness")
-        if brightness is not None:
-            app_core.set_tone_params(brightness=brightness)
+        if data is not None:
+            app_core.set_tone_params(**data)
         return "", 204
     
     return app
