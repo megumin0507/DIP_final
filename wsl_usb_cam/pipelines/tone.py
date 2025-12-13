@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class ToneAdjust(FrameStage):
-    def __init__(self, brightness: float = 0.0, contrast: float = 1.0, saturation: float = 1.0, skin_tone_scale: float = 1.2):
+    def __init__(self, brightness: float = 0.0, contrast: float = 1.0, saturation: float = 1.0, skin_tone_scale: float = 1.1):
         self.brightness = np.clip(float(brightness), -1.0, 1.0)
         self.contrast = np.clip(float(contrast), 0.5, 2.0)
         self.saturation = np.clip(float(saturation), 0.0, 2.0)
@@ -70,7 +70,7 @@ class LCE(FrameStage):
         return lce_frame
     
 class SkinToneAdjust(FrameStage):
-    def __init__(self, scale: float = 1.2):
+    def __init__(self, scale: float = 1.1):
         self.scale = scale
 
     def __call__(self, frame):
@@ -88,10 +88,10 @@ class SkinToneAdjust(FrameStage):
         ))
         return mask.astype(np.uint8)
 
-    def adjust_skin_saturation_lab(self, img_bgr, scale=1.2):
+    def adjust_skin_saturation_lab(self, img_bgr, scale=1.1):
         mask = self.skin_mask_ycrcb(img_bgr)
         # soft mask
-        mask = cv2.GaussianBlur(mask.astype(np.float32), (15,15), 0)
+        mask = cv2.GaussianBlur(mask.astype(np.float32), (15, 15), 0)
 
         lab = cv2.cvtColor(img_bgr, cv2.COLOR_BGR2LAB).astype(np.float32)
         L, a, b = cv2.split(lab)
