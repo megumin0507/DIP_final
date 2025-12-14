@@ -51,20 +51,19 @@ class LCE(FrameStage):
             Jonathan Sachs
             17-May-2016
     """
-    def __init__(self, diameter: int = 41, sigma_color: float = 20.0, sigma_space: float = 7.0, amount: float = 0.5):
+    def __init__(self, diameter: int = 41, sigma: float = 7.0, amount: float = 0.5):
         self.diameter = diameter
-        self.sigma_color = sigma_color
-        self.sigma_space = sigma_space
+        self.sigma = sigma
         self.amount = amount
         logger.info(
-            f"LCE initialized with diameter={diameter}, sigma_color={sigma_color}, sigma_space={sigma_space}, amount={amount}")
+            f"LCE initialized with diameter={diameter}, sigma={sigma}, amount={amount}")
         
     def __call__(self, frame):
         if frame is None:
             return frame
 
-        blur = cv2.bilateralFilter(frame, d=self.diameter, sigmaColor=self.sigma_color,
-                                   sigmaSpace=self.sigma_space, borderType=cv2.BORDER_DEFAULT)
+        blur = cv2.GaussianBlur(frame, ksize=(self.diameter, self.diameter),
+                                sigmaX=self.sigma)
         lce_frame = cv2.addWeighted(frame, 1.0 + self.amount, blur, -self.amount, 0)
 
         return lce_frame
