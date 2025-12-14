@@ -7,6 +7,7 @@ from wsl_usb_cam.pipelines.sharpen import Sharpen
 from wsl_usb_cam.pipelines.undistort import Undistort
 from wsl_usb_cam.pipelines.bg_blur_seg import BackgroundBlurSegmentation
 from wsl_usb_cam.pipelines.stabilize import VideoStabilizer
+from wsl_usb_cam.pipelines.face_relight import FaceRelight
 from wsl_usb_cam.app import AppCore
 from wsl_usb_cam.web import create_app
 from wsl_usb_cam.keyboard import KeyboardController
@@ -44,6 +45,7 @@ def main():
             blur_ksize=31,          # Blur 程度
             blur_sigma=0.0
         )),
+    ("face_relight", FaceRelight()),
     ("overlay_fps", OverlayFPS()),
     ])
 
