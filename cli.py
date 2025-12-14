@@ -29,13 +29,13 @@ def main():
 
     # later add more stages here
     pipeline = Pipeline([
-    ("bilateral",   BilateralSmoothing(diameter=7, sigma_color=25, sigma_space=5)),
-    ("awb",         AutoWhiteBalance(p=1.0, ksize=3, update_every=5)),
     ("undistort",   Undistort(calib_file="calibration_result.npz")),
+    # ("bilateral",   BilateralSmoothing(diameter=7, sigma_color=25, sigma_space=5)),
+    ("awb",         AutoWhiteBalance(p=1.0, ksize=3, update_every=5)),
     ("stabilize",   VideoStabilizer()),
-    ("lce",         LCE()),
+    # ("lce",         LCE()),
     ("tone",        ToneAdjust()),
-    ("sharpen",     Sharpen(amount=1.0)),
+    # ("sharpen",     Sharpen(amount=1.0)),
     ("background_blur",        BackgroundBlurSegmentation(
             downscale=0.1,          # 可調速度
             update_every=2,         # 每 x 個 frame 更新 mask

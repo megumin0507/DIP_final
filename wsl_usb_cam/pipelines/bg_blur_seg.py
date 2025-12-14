@@ -87,11 +87,24 @@ class BackgroundBlurSegmentation(FrameStage):
         # 背景高斯模糊
         blurred = cv2.GaussianBlur(frame, (self.blur_ksize, self.blur_ksize), self.blur_sigma)
 
+        # ===== 新增：前景（人像）專用 bilateral + sharpen =====
+        # 先對整張圖算（效率較好）
+        bilateral = cv2.bilateralFilter(frame, d=3, sigmaColor=50, sigmaSpace=7)
+
+        # Unsharp masking（amount 固定寫死或改成參數）
+        amount = 1.0
+        sharpened_fg = cv2.addWeighted(
+            frame, 1 + amount,
+            bilateral, -amount,
+            0
+        )
+
         # 將 mask 擴展成 3 channel，做 alpha blending
         # mask: 前景=1, 背景=0
         mask3 = np.repeat(mask[:, :, None], 3, axis=2).astype(np.float32)
 
-        fg = frame.astype(np.float32)
+        # fg = frame.astype(np.float32)
+        fg = sharpened_fg.astype(np.float32)
         bg = blurred.astype(np.float32)
 
         out = fg * mask3 + bg * (1.0 - mask3)
